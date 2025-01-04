@@ -24,10 +24,10 @@ configure:
 	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) .. -DADDITIONAL_INCLUDE_PATHS="$(ADDITIONAL_INCLUDE_PATHS)"
 
 build: configure
-	cd $(BUILD_DIR) && make
+	cd $(BUILD_DIR) && $(MAKE)
 
 install: build
-	cd $(BUILD_DIR) && make install DESTDIR=$(INSTALL_DIR)
+	cd $(BUILD_DIR) && $(MAKE) install DESTDIR=$(INSTALL_DIR)
 
 help:
 	@echo "Usage:"
