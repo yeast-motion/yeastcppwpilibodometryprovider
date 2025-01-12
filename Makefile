@@ -6,9 +6,6 @@ BUILD_TYPE ?= Release
 # Set the build directory
 BUILD_DIR ?= build
 
-ADDITIONAL_INCLUDE_PATHS = \
-	../yeastcpp/include; \
-
 # Set the install directory
 INSTALL_DIR ?= /usr/local
 
@@ -21,7 +18,7 @@ clean:
 
 configure:
 	mkdir -p $(BUILD_DIR)
-	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) .. -DADDITIONAL_INCLUDE_PATHS="$(ADDITIONAL_INCLUDE_PATHS)" -DCMAKE_WARN_DEPRECATED=OFF
+	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) .. -DCMAKE_WARN_DEPRECATED=OFF
 
 build: configure
 	cd $(BUILD_DIR) && $(MAKE)
