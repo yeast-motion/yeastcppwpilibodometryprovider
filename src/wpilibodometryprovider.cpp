@@ -99,36 +99,16 @@ OdometrySample WPILibOdometryProvider::update (std::vector<SwerveModuleStatus> s
     return result;
 }
 
-OdometrySample WPILibOdometryProvider::reset (OdometrySample reset_sample, std::vector<SwerveModuleStatus> status, Rotation2D gyro_angle) 
+OdometrySample WPILibOdometryProvider::reset (OdometrySample reset_sample) 
 {
     frc::Pose2d reset_pose;
-    reset_pose.TransformBy(
+    reset_pose = reset_pose.TransformBy(
         frc::Transform2d(
             units::meter_t(reset_sample.pose.translation.x),
             units::meter_t(reset_sample.pose.translation.y),
             frc::Rotation2d(units::radian_t(reset_sample.pose.rotation.theta))));
 
-    frc::Rotation2d frc_gyro = frc::Rotation2d(units::radian_t(gyro_angle.theta));
-
-    frc::SwerveModulePosition fl; 
-    fl.angle = frc::Rotation2d(units::radian_t(status[0].theta)); 
-    fl.distance = units::meter_t(status[0].position);
-    
-    frc::SwerveModulePosition fr; 
-    fr.angle = frc::Rotation2d(units::radian_t(status[1].theta)); 
-    fr.distance = units::meter_t(status[1].position);
-    
-    frc::SwerveModulePosition bl; 
-    bl.angle = frc::Rotation2d(units::radian_t(status[2].theta)); 
-    bl.distance = units::meter_t(status[2].position);
-    
-    frc::SwerveModulePosition br; 
-    br.angle = frc::Rotation2d(units::radian_t(status[3].theta)); 
-    br.distance = units::meter_t(status[3].position);
-
-    std::cout << "Attempting to reset to: " << reset_pose.X().value() << ", " << reset_pose.Y().value() << ", " << reset_pose.Rotation().Degrees().value() << std::endl;
-
-    odometry->ResetPosition(frc_gyro, {fl, fr, bl, br}, reset_pose);
+    odometry->ResetPose(reset_pose);
     
     OdometrySample result;
     frc::Pose2d pose = odometry->GetPose();
@@ -138,5 +118,4 @@ OdometrySample WPILibOdometryProvider::reset (OdometrySample reset_sample, std::
     result.pose.rotation.theta = pose.Rotation().Radians().value();
 
     return result;
-
 }
