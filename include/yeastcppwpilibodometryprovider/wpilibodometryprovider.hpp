@@ -16,7 +16,9 @@ namespace yeast_motion
     {
         public:
             OdometrySample update (std::vector<SwerveModuleStatus> status, Rotation2D gyro_angle) override;
-            OdometrySample reset (OdometrySample reset_sample) override;
+            OdometrySample reset (OdometrySample reset_sample,
+                                  std::vector<SwerveModuleStatus> status,
+                                  Rotation2D gyro_angle) override;
             WPILibOdometryProvider(nlohmann::json characterization);
 
         private:
