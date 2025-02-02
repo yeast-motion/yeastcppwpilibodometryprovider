@@ -23,5 +23,6 @@ namespace yeast_motion
             std::vector<SwerveModuleConfig> module_configs;
             std::unique_ptr<frc::SwerveDriveKinematics<4>> kinematics;
             std::unique_ptr<frc::SwerveDriveOdometry<4>> odometry;
+            wpi::array<frc::SwerveModulePosition, 4> last_wheel_positions;
     };
 }

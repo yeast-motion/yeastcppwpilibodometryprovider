@@ -23,7 +23,7 @@ WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization)
         config.translation.y = motor_config["y"];
         module_configs.push_back(config);
     }
-    
+
     if (module_configs.size() != 4)
     {
         throw std::runtime_error("Only configurations with 4 swerve modules are supported by the Yeast WPI Lib Odometry Provider");
@@ -35,9 +35,9 @@ WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization)
     frc::Translation2d m_backRightLocation  {units::meter_t(module_configs[3].translation.x), units::meter_t(module_configs[3].translation.y)};
 
     // https://docs.wpilib.org/en/stable/docs/software/kinematics-and-odometry/swerve-drive-kinematics.html#constructing-the-kinematics-object
-    kinematics.reset(new frc::SwerveDriveKinematics<4> 
-        (m_frontLeftLocation, 
-        m_frontRightLocation, 
+    kinematics.reset(new frc::SwerveDriveKinematics<4>
+        (m_frontLeftLocation,
+        m_frontRightLocation,
         m_backLeftLocation,
         m_backRightLocation));
 
@@ -50,7 +50,7 @@ WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization)
     // Creating my odometry object from the kinematics object. Here,
     // our starting pose is 5 meters along the long end of the field and in the
     // center of the field along the short end, facing forward.
-    odometry.reset(new frc::SwerveDriveOdometry<4> 
+    odometry.reset(new frc::SwerveDriveOdometry<4>
         (*(kinematics.get()),
         frc::Rotation2d(0_rad),
         {
@@ -60,34 +60,39 @@ WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization)
             zero_position
         },
         frc::Pose2d (0_m, 0_m, 0_rad)));
+
+    last_wheel_positions = {0, 0, 0, 0};
 }
 
 OdometrySample WPILibOdometryProvider::update (std::vector<SwerveModuleStatus> status, Rotation2D gyro_angle)
 {
-    frc::SwerveModulePosition fl; 
-    fl.angle = frc::Rotation2d(units::radian_t(status[0].theta)); 
+    frc::SwerveModulePosition fl;
+    fl.angle = frc::Rotation2d(units::radian_t(status[0].theta));
     fl.distance = units::meter_t(status[0].position);
-    
-    frc::SwerveModulePosition fr; 
-    fr.angle = frc::Rotation2d(units::radian_t(status[1].theta)); 
+
+    frc::SwerveModulePosition fr;
+    fr.angle = frc::Rotation2d(units::radian_t(status[1].theta));
     fr.distance = units::meter_t(status[1].position);
-    
-    frc::SwerveModulePosition bl; 
-    bl.angle = frc::Rotation2d(units::radian_t(status[2].theta)); 
+
+    frc::SwerveModulePosition bl;
+    bl.angle = frc::Rotation2d(units::radian_t(status[2].theta));
     bl.distance = units::meter_t(status[2].position);
-    
-    frc::SwerveModulePosition br; 
-    br.angle = frc::Rotation2d(units::radian_t(status[3].theta)); 
+
+    frc::SwerveModulePosition br;
+    br.angle = frc::Rotation2d(units::radian_t(status[3].theta));
     br.distance = units::meter_t(status[3].position);
+
+    wpi::array<frc::SwerveModulePosition, 4> wheel_positions =
+    {
+        fl,
+        fr,
+        bl,
+        br
+    };
 
     odometry->Update(frc::Rotation2d
         (units::radian_t (gyro_angle.theta)),
-        {
-            fl,
-            fr,
-            bl,
-            br
-        });
+        wheel_positions);
 
     OdometrySample result;
     frc::Pose2d pose = odometry->GetPose();
@@ -96,10 +101,18 @@ OdometrySample WPILibOdometryProvider::update (std::vector<SwerveModuleStatus> s
     result.pose.translation.y = pose.Translation().Y().value();
     result.pose.rotation.theta = pose.Rotation().Radians().value();
 
+    frc::Twist2d result_velocity = kinematics->ToTwist2d(last_wheel_positions, wheel_positions);
+    result.velocity.x = result_velocity.dx.value();
+    result.velocity.y = result_velocity.dy.value();
+    result.velocity.omega = result_velocity.dtheta.value();
+    result.velocity_valid = true;
+
+    last_wheel_positions = wheel_positions;
+
     return result;
 }
 
-OdometrySample WPILibOdometryProvider::reset (OdometrySample reset_sample) 
+OdometrySample WPILibOdometryProvider::reset (OdometrySample reset_sample)
 {
     frc::Pose2d reset_pose;
     reset_pose = reset_pose.TransformBy(
@@ -109,7 +122,7 @@ OdometrySample WPILibOdometryProvider::reset (OdometrySample reset_sample)
             frc::Rotation2d(units::radian_t(reset_sample.pose.rotation.theta))));
 
     odometry->ResetPose(reset_pose);
-    
+
     OdometrySample result;
     frc::Pose2d pose = odometry->GetPose();
     result.pose_valid = true;
