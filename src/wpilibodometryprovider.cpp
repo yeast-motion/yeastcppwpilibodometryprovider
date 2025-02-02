@@ -13,8 +13,10 @@
 #include "frc/geometry/Pose2d.h"
 
 using namespace yeast_motion;
+static frc::SwerveModulePosition zero_position;
 
-WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization)
+WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization) :
+    last_wheel_positions ((std::array<frc::SwerveModulePosition, 4>){zero_position, zero_position, zero_position, zero_position})
 {
     for (auto motor_config : characterization["MotorConfig"])
     {
@@ -60,8 +62,6 @@ WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization)
             zero_position
         },
         frc::Pose2d (0_m, 0_m, 0_rad)));
-
-    last_wheel_positions = {0, 0, 0, 0};
 }
 
 OdometrySample WPILibOdometryProvider::update (std::vector<SwerveModuleStatus> status, Rotation2D gyro_angle)
