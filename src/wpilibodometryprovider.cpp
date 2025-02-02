@@ -101,10 +101,17 @@ OdometrySample WPILibOdometryProvider::update (std::vector<SwerveModuleStatus> s
     result.pose.translation.y = pose.Translation().Y().value();
     result.pose.rotation.theta = pose.Rotation().Radians().value();
 
-    frc::Twist2d result_velocity = kinematics->ToTwist2d(last_wheel_positions, wheel_positions);
-    result.velocity.x = result_velocity.dx.value();
-    result.velocity.y = result_velocity.dy.value();
-    result.velocity.omega = result_velocity.dtheta.value();
+    wpi::array < frc::SwerveModuleState, 4 > module_states {
+            frc::SwerveModuleState { units::velocity::meters_per_second_t(status[0].speed), units::angle::radian_t(status[0].theta) },
+            frc::SwerveModuleState { units::velocity::meters_per_second_t(status[1].speed), units::angle::radian_t(status[1].theta) },
+            frc::SwerveModuleState { units::velocity::meters_per_second_t(status[2].speed), units::angle::radian_t(status[2].theta) },
+            frc::SwerveModuleState { units::velocity::meters_per_second_t(status[3].speed), units::angle::radian_t(status[3].theta) }
+    };
+
+    auto chassis_speeds = kinematics->ToChassisSpeeds(module_states);
+    result.velocity.x = chassis_speeds.vx.value();
+    result.velocity.y = chassis_speeds.vy.value();
+    result.velocity.omega = chassis_speeds.omega.value();
     result.velocity_valid = true;
 
     last_wheel_positions = wheel_positions;
