@@ -7,8 +7,8 @@
 
 #include "yeastcpp/components/odometry_provider.hpp"
 
+#include <frc/estimator/SwerveDrivePoseEstimator.h>
 #include <frc/kinematics/SwerveDriveKinematics.h>
-#include <frc/kinematics/SwerveDriveOdometry.h>
 
 namespace yeast_motion
 {
@@ -17,12 +17,13 @@ namespace yeast_motion
         public:
             OdometrySample update (std::vector<SwerveModuleStatus> status, Rotation2D gyro_angle) override;
             OdometrySample reset (OdometrySample reset_sample) override;
+            void provide_absolute_position_estimate (AbsolutePoseEstimate estimate) override;
             WPILibOdometryProvider(nlohmann::json characterization);
 
         private:
             std::vector<SwerveModuleConfig> module_configs;
             std::unique_ptr<frc::SwerveDriveKinematics<4>> kinematics;
-            std::unique_ptr<frc::SwerveDriveOdometry<4>> odometry;
+            std::unique_ptr<frc::SwerveDrivePoseEstimator<4>> estimator;
             wpi::array<frc::SwerveModulePosition, 4> last_wheel_positions;
     };
 }

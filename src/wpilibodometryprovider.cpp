@@ -44,15 +44,14 @@ WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization) 
         m_backRightLocation));
 
     // https://docs.wpilib.org/en/stable/docs/software/kinematics-and-odometry/swerve-drive-odometry.html#creating-the-odometry-object
-
     frc::SwerveModulePosition zero_position;
     zero_position.angle = 0_rad;
     zero_position.distance = 0_m;
 
-    // Creating my odometry object from the kinematics object. Here,
+    // Creating my estimator object from the kinematics object. Here,
     // our starting pose is 5 meters along the long end of the field and in the
     // center of the field along the short end, facing forward.
-    odometry.reset(new frc::SwerveDriveOdometry<4>
+    estimator.reset(new frc::SwerveDrivePoseEstimator<4>
         (*(kinematics.get()),
         frc::Rotation2d(0_rad),
         {
@@ -62,6 +61,26 @@ WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization) 
             zero_position
         },
         frc::Pose2d (0_m, 0_m, 0_rad)));
+
+    if (characterization.contains("std_devs") &&
+        characterization["std_devs"].is_array() &&
+        characterization["std_devs"].size() == 3)
+    {
+        estimator->SetVisionMeasurementStdDevs (
+            { characterization["std_devs"][0],
+              characterization["std_devs"][1],
+              characterization["std_devs"][2] } );
+        std::cout << "Using custom etimator std devs. " <<
+            characterization["std_devs"][0] << ", " <<
+            characterization["std_devs"][1] << ", " <<
+            characterization["std_devs"][2] << std::endl;
+    }
+    else
+    {
+        std::cout << "Using default Limelight std devs. .5, .5, 9999999" << std::endl;
+        // https://github.com/LimelightVision/limelight-examples/blob/main/java-wpilib/swerve-megatag-odometry/src/main/java/frc/robot/Drivetrain.java#L121
+        estimator->SetVisionMeasurementStdDevs( {.5, .5, 9999999} );
+    }
 }
 
 OdometrySample WPILibOdometryProvider::update (std::vector<SwerveModuleStatus> status, Rotation2D gyro_angle)
@@ -90,12 +109,13 @@ OdometrySample WPILibOdometryProvider::update (std::vector<SwerveModuleStatus> s
         br
     };
 
-    odometry->Update(frc::Rotation2d
+    // https://github.com/wpilibsuite/allwpilib/blob/638d265b339435c7f7af530f84a3e242500f75ce/wpilibcExamples/src/main/cpp/examples/SwerveDrivePoseEstimator/cpp/Drivetrain.cpp#L34
+    estimator->Update(frc::Rotation2d
         (units::radian_t (gyro_angle.theta)),
         wheel_positions);
 
     OdometrySample result;
-    frc::Pose2d pose = odometry->GetPose();
+    frc::Pose2d pose = estimator->GetEstimatedPosition();
     result.pose_valid = true;
     result.pose.translation.x = pose.Translation().X().value();
     result.pose.translation.y = pose.Translation().Y().value();
@@ -119,6 +139,20 @@ OdometrySample WPILibOdometryProvider::update (std::vector<SwerveModuleStatus> s
     return result;
 }
 
+void WPILibOdometryProvider::provide_absolute_position_estimate (AbsolutePoseEstimate estimate)
+{
+    // https://github.com/wpilibsuite/allwpilib/blob/638d265b339435c7f7af530f84a3e242500f75ce/wpilibcExamples/src/main/cpp/examples/SwerveDrivePoseEstimator/cpp/Drivetrain.cpp#L41
+    // Also apply vision measurements. We use 0.3 seconds in the past as an
+    // example -- on a real robot, this must be calculated based either on latency
+    // or timestamps.
+
+    estimator->AddVisionMeasurement(
+        frc::Pose2d(units::meter_t(estimate.pose.translation.x),
+                units::meter_t(estimate.pose.translation.y),
+                units::radian_t(estimate.pose.rotation.theta)),
+        units::second_t(estimate.timestamp));
+}
+
 OdometrySample WPILibOdometryProvider::reset (OdometrySample reset_sample)
 {
     frc::Pose2d reset_pose;
@@ -128,10 +162,10 @@ OdometrySample WPILibOdometryProvider::reset (OdometrySample reset_sample)
             units::meter_t(reset_sample.pose.translation.y),
             frc::Rotation2d(units::radian_t(reset_sample.pose.rotation.theta))));
 
-    odometry->ResetPose(reset_pose);
+    estimator->ResetPose(reset_pose);
 
     OdometrySample result;
-    frc::Pose2d pose = odometry->GetPose();
+    frc::Pose2d pose = estimator->GetEstimatedPosition();
     result.pose_valid = true;
     result.pose.translation.x = pose.Translation().X().value();
     result.pose.translation.y = pose.Translation().Y().value();
