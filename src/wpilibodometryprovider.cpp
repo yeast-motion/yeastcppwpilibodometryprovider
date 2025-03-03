@@ -11,6 +11,8 @@
 #include "frc/geometry/Rotation2d.h"
 #include "frc/geometry/Translation2d.h"
 #include "frc/geometry/Pose2d.h"
+#include "wpilibc/frc/Timer.h"
+#include "wpimath/wpimath/MathShared.h"
 
 using namespace yeast_motion;
 static frc::SwerveModulePosition zero_position;
@@ -149,8 +151,8 @@ void WPILibOdometryProvider::provide_absolute_position_estimate (AbsolutePoseEst
     estimator->AddVisionMeasurement(
         frc::Pose2d(units::meter_t(estimate.pose.translation.x),
                 units::meter_t(estimate.pose.translation.y),
-                units::radian_t(estimate.pose.rotation.theta)),
-        units::second_t(estimate.timestamp));
+                frc::Rotation2d(units::radian_t(estimate.pose.rotation.theta))),
+                frc::Timer::GetTimestamp() - units::millisecond_t(300));
 }
 
 OdometrySample WPILibOdometryProvider::reset (OdometrySample reset_sample)
