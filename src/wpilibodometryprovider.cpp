@@ -144,15 +144,25 @@ OdometrySample WPILibOdometryProvider::update (std::vector<SwerveModuleStatus> s
 void WPILibOdometryProvider::provide_absolute_position_estimate (AbsolutePoseEstimate estimate)
 {
     // https://github.com/wpilibsuite/allwpilib/blob/638d265b339435c7f7af530f84a3e242500f75ce/wpilibcExamples/src/main/cpp/examples/SwerveDrivePoseEstimator/cpp/Drivetrain.cpp#L41
-    // Also apply vision measurements. We use 0.3 seconds in the past as an
-    // example -- on a real robot, this must be calculated based either on latency
-    // or timestamps.
 
     estimator->AddVisionMeasurement(
         frc::Pose2d(units::meter_t(estimate.pose.translation.x),
                 units::meter_t(estimate.pose.translation.y),
                 frc::Rotation2d(units::radian_t(estimate.pose.rotation.theta))),
-                frc::Timer::GetTimestamp() - units::millisecond_t(300));
+                units::time::second_t(estimate.timestamp));
+}
+
+OdometrySample WPILibOdometryProvider::get()
+{
+    auto estimate = estimator->GetEstimatedPosition();
+
+    OdometrySample result;
+    result.pose_valid = true;
+    result.pose.translation.x = estimate.X().value();
+    result.pose.translation.y = estimate.Y().value();
+    result.pose.rotation.theta = estimate.Rotation().Radians().value();
+
+    return result;
 }
 
 OdometrySample WPILibOdometryProvider::reset (OdometrySample reset_sample)
