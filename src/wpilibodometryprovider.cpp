@@ -81,7 +81,7 @@ WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization) 
     {
         std::cout << "Using default Limelight std devs. .5, .5, 9999999" << std::endl;
         // https://github.com/LimelightVision/limelight-examples/blob/main/java-wpilib/swerve-megatag-odometry/src/main/java/frc/robot/Drivetrain.java#L121
-        estimator->SetVisionMeasurementStdDevs( {.5, .5, 9999999} );
+        estimator->SetVisionMeasurementStdDevs( {1.5, 1.5, 9999999} );
     }
 }
 
@@ -149,7 +149,7 @@ void WPILibOdometryProvider::provide_absolute_position_estimate (AbsolutePoseEst
         frc::Pose2d(units::meter_t(estimate.pose.translation.x),
                 units::meter_t(estimate.pose.translation.y),
                 frc::Rotation2d(units::radian_t(estimate.pose.rotation.theta))),
-                units::time::second_t(estimate.timestamp));
+                frc::Timer::GetTimestamp() - units::time::millisecond_t(estimate.timestamp));
 }
 
 OdometrySample WPILibOdometryProvider::get()
