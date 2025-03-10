@@ -81,7 +81,7 @@ WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization) 
     {
         std::cout << "Using default Limelight std devs. .5, .5, 9999999" << std::endl;
         // https://github.com/LimelightVision/limelight-examples/blob/main/java-wpilib/swerve-megatag-odometry/src/main/java/frc/robot/Drivetrain.java#L121
-        estimator->SetVisionMeasurementStdDevs( {1.5, 1.5, 9999999} );
+        estimator->SetVisionMeasurementStdDevs( {0.75, 0.75, 9999999} );
     }
 }
 
