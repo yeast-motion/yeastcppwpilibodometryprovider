@@ -138,6 +138,8 @@ OdometrySample WPILibOdometryProvider::update (std::vector<SwerveModuleStatus> s
 
     last_wheel_positions = wheel_positions;
 
+    last_sample = result;
+
     return result;
 }
 
@@ -154,15 +156,7 @@ void WPILibOdometryProvider::provide_absolute_position_estimate (AbsolutePoseEst
 
 OdometrySample WPILibOdometryProvider::get()
 {
-    auto estimate = estimator->GetEstimatedPosition();
-
-    OdometrySample result;
-    result.pose_valid = true;
-    result.pose.translation.x = estimate.X().value();
-    result.pose.translation.y = estimate.Y().value();
-    result.pose.rotation.theta = estimate.Rotation().Radians().value();
-
-    return result;
+    return last_sample;
 }
 
 OdometrySample WPILibOdometryProvider::reset (OdometrySample reset_sample)
@@ -175,13 +169,6 @@ OdometrySample WPILibOdometryProvider::reset (OdometrySample reset_sample)
             frc::Rotation2d(units::radian_t(reset_sample.pose.rotation.theta))));
 
     estimator->ResetPose(reset_pose);
-
-    OdometrySample result;
-    frc::Pose2d pose = estimator->GetEstimatedPosition();
-    result.pose_valid = true;
-    result.pose.translation.x = pose.Translation().X().value();
-    result.pose.translation.y = pose.Translation().Y().value();
-    result.pose.rotation.theta = pose.Rotation().Radians().value();
-
-    return result;
+    last_sample = reset_sample;
+    return last_sample;
 }

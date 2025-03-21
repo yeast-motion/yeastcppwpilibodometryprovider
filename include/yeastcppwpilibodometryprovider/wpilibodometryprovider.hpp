@@ -26,5 +26,6 @@ namespace yeast_motion
             std::unique_ptr<frc::SwerveDriveKinematics<4>> kinematics;
             std::unique_ptr<frc::SwerveDrivePoseEstimator<4>> estimator;
             wpi::array<frc::SwerveModulePosition, 4> last_wheel_positions;
+            yeast_motion::OdometrySample last_sample;
     };
 }
