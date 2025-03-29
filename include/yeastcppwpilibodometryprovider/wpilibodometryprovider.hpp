@@ -7,8 +7,22 @@
 
 #include "yeastcpp/components/odometry_provider.hpp"
 
-#include <frc/estimator/SwerveDrivePoseEstimator.h>
-#include <frc/kinematics/SwerveDriveKinematics.h>
+namespace wpi
+{
+    template <typename T, size_t N>
+    class array;
+}
+
+namespace frc
+{
+    template <size_t NumModules>
+    class SwerveDriveKinematics;
+
+    template <size_t NumModules>
+    class SwerveDrivePoseEstimator;
+
+    struct SwerveModulePosition;
+}
 
 namespace yeast_motion
 {
@@ -25,7 +39,6 @@ namespace yeast_motion
             std::vector<SwerveModuleConfig> module_configs;
             std::unique_ptr<frc::SwerveDriveKinematics<4>> kinematics;
             std::unique_ptr<frc::SwerveDrivePoseEstimator<4>> estimator;
-            wpi::array<frc::SwerveModulePosition, 4> last_wheel_positions;
             yeast_motion::OdometrySample last_sample;
     };
 }

@@ -15,10 +15,8 @@
 #include "wpimath/wpimath/MathShared.h"
 
 using namespace yeast_motion;
-static frc::SwerveModulePosition zero_position;
 
-WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization) :
-    last_wheel_positions ((std::array<frc::SwerveModulePosition, 4>){zero_position, zero_position, zero_position, zero_position})
+WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization)
 {
     for (auto motor_config : characterization["MotorConfig"])
     {
@@ -135,8 +133,6 @@ OdometrySample WPILibOdometryProvider::update (std::vector<SwerveModuleStatus> s
     result.velocity.y = chassis_speeds.vy.value();
     result.velocity.omega = chassis_speeds.omega.value();
     result.velocity_valid = true;
-
-    last_wheel_positions = wheel_positions;
 
     last_sample = result;
 
