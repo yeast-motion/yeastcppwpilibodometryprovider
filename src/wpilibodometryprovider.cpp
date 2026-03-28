@@ -153,6 +153,16 @@ void WPILibOdometryProvider::provide_absolute_position_estimate (AbsolutePoseEst
                 frc::Timer::GetTimestamp() - units::time::millisecond_t(estimate.timestamp));
 }
 
+void WPILibOdometryProvider::provide_absolute_position_estimate (AbsolutePoseEstimate estimate, std::array<double, 3> std_devs)
+{
+    estimator->AddVisionMeasurement(
+        frc::Pose2d(units::meter_t(estimate.pose.translation.x),
+                units::meter_t(estimate.pose.translation.y),
+                frc::Rotation2d(units::radian_t(estimate.pose.rotation.theta))),
+                frc::Timer::GetTimestamp() - units::time::millisecond_t(estimate.timestamp),
+                {std_devs[0], std_devs[1], std_devs[2]});
+}
+
 OdometrySample WPILibOdometryProvider::get()
 {
     return last_sample;

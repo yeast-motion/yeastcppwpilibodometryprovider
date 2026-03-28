@@ -19,6 +19,7 @@ namespace yeast_motion
             OdometrySample get() override;
             OdometrySample reset (OdometrySample reset_sample) override;
             void provide_absolute_position_estimate (AbsolutePoseEstimate estimate) override;
+            void provide_absolute_position_estimate (AbsolutePoseEstimate estimate, std::array<double, 3> std_devs) override;
             WPILibOdometryProvider(nlohmann::json characterization);
 
         private:
