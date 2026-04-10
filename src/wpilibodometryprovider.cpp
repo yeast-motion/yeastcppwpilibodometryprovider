@@ -18,7 +18,7 @@ using namespace yeast_motion;
 static frc::SwerveModulePosition zero_position;
 
 WPILibOdometryProvider::WPILibOdometryProvider(nlohmann::json characterization) :
-    last_wheel_positions ((std::array<frc::SwerveModulePosition, 4>){zero_position, zero_position, zero_position, zero_position})
+    last_wheel_positions (std::array<frc::SwerveModulePosition, 4>{zero_position, zero_position, zero_position, zero_position})
 {
     for (auto motor_config : characterization["MotorConfig"])
     {
